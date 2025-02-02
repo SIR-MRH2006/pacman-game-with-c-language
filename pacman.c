@@ -21,19 +21,19 @@
 int res = 0;     
 int score = 0;         //امتیاز بازی (غذاهای خورده شده)
 int pacman_x, pacman_y;  // مختصات پک من
-int enemy_x, enemy_y;  // مختصات پک من
-int enemy_x2, enemy_y2;  // مختصات پک من
 int food = 0;  //تعداد غذاهای موجود در بازی
 int curr = 0;    //تعداد غذاهای خورده شده
 int countOfPresent = 0;
 int isdouble = 0;
 int totalFood;
+int enemis_cords[8];
+int auxiliryCount;
 
 typedef struct{
 	char type;
 } varOfCell;
 
-void initialize(varOfCell cells[HEIGHT][WIDTH]){
+void initialize(varOfCell cells[HEIGHT][WIDTH],int userChoices){
 	// Putting Walls as boundary in the Game 
 	for (int i = 0; i < HEIGHT; i++) { 
 		for (int j = 0; j < WIDTH; j++) { 
@@ -107,31 +107,32 @@ void initialize(varOfCell cells[HEIGHT][WIDTH]){
 			} 
 		} 
 	} 
-	//
-	count = 1; 
-	while (count != 0) { 
-		int i = (rand() % (HEIGHT+1)); 
-		int j = (rand() % (WIDTH+1)); 
+
+	if(userChoices == 2){
+		count = 3;
+	}else if(userChoices == 1){
+		count = 4;
+	}
+	else{
+		count = 2;
+	}
+
+	auxiliryCount = count;
+	int i;
+	int j;
+	int t = 0;
+	while(count != 0){ 
+		i = (rand() % (HEIGHT+1)); 
+		j = (rand() % (WIDTH+1)); 
 
 		if (cells[i][j].type == EMPTY) { 
 			cells[i][j].type = ENEMY;
-			enemy_x = j;
-			enemy_y = i;
+			enemis_cords[t] = j;
+			enemis_cords[t+1] = i;
 			count--; 
+			t = t+2;
 		} 
-	} 
-	count = 1; 
-	while (count != 0) { 
-		int i = (rand() % (HEIGHT+1)); 
-		int j = (rand() % (WIDTH+1)); 
-
-		if (cells[i][j].type == EMPTY) { 
-			cells[i][j].type = ENEMY;
-			enemy_x2 = j;
-			enemy_y2 = i;
-			count--; 
-		} 
-	} 
+	}
 } 
 
 
@@ -210,46 +211,32 @@ int move(int move_x, int move_y,varOfCell cells[HEIGHT][WIDTH],FILE *ptrToFile){
 } 
 
 void moveEnemy1(varOfCell cells[HEIGHT][WIDTH]){
-	printf("enter moveEnemy");
-	if(pacman_x<enemy_x && cells[enemy_y][enemy_x-1].type != WALL && cells[enemy_y][enemy_x-1].type != ENEMY){
-		cells[enemy_y][enemy_x].type = EMPTY;
-		enemy_x -= 1;
-		cells[enemy_y][enemy_x].type = ENEMY;
-	}else if(pacman_x > enemy_x && cells[enemy_y][enemy_x+1].type != WALL && cells[enemy_y][enemy_x+1].type != ENEMY){
-		cells[enemy_y][enemy_x].type = EMPTY;
-		enemy_x += 1;
-		cells[enemy_y][enemy_x].type = ENEMY;
-	}else if(pacman_y<enemy_y && cells[enemy_y-1][enemy_x].type != WALL && cells[enemy_y-1][enemy_x].type != ENEMY){
-		cells[enemy_y][enemy_x].type = EMPTY;
-		enemy_y -= 1;
-		cells[enemy_y][enemy_x].type = ENEMY;
-	}else if(pacman_y > enemy_y && cells[enemy_y+1][enemy_x].type != WALL  && cells[enemy_y+1][enemy_x].type != ENEMY){
-		cells[enemy_y][enemy_x].type = EMPTY;
-		enemy_y += 1;
-		cells[enemy_y][enemy_x].type = ENEMY;
+	for(int j = 0,i=0;j<auxiliryCount;j++,i=i+2){
+		if(pacman_x<enemis_cords[i] && cells[enemis_cords[i+1]][enemis_cords[i]-1].type != WALL && cells[enemis_cords[i+1]][enemis_cords[i]-1].type != ENEMY){
+			cells[enemis_cords[i+1]][enemis_cords[i]].type = EMPTY;
+			enemis_cords[i] -= 1;
+			cells[enemis_cords[i+1]][enemis_cords[i]].type = ENEMY;
+		}else if(pacman_x > enemis_cords[i] && cells[enemis_cords[i+1]][enemis_cords[i]+1].type != WALL && cells[enemis_cords[i+1]][enemis_cords[i]+1].type != ENEMY){
+			cells[enemis_cords[i+1]][enemis_cords[i]].type = EMPTY;
+			enemis_cords[i] += 1;
+			cells[enemis_cords[i+1]][enemis_cords[i]].type = ENEMY;
+		}else if(pacman_y<enemis_cords[i+1] && cells[enemis_cords[i+1]-1][enemis_cords[i]].type != WALL && cells[enemis_cords[i+1]-1][enemis_cords[i]].type != ENEMY){
+			cells[enemis_cords[i+1]][enemis_cords[i]].type = EMPTY;
+			enemis_cords[i+1] -= 1;
+			cells[enemis_cords[i+1]][enemis_cords[i]].type = ENEMY;
+		}else if(pacman_y > enemis_cords[i+1] && cells[enemis_cords[i+1]+1][enemis_cords[i]].type != WALL  && cells[enemis_cords[i+1]+1][enemis_cords[i]].type != ENEMY){
+			cells[enemis_cords[i+1]][enemis_cords[i]].type = EMPTY;
+			enemis_cords[i+1] += 1;
+			cells[enemis_cords[i+1]][enemis_cords[i]].type = ENEMY;
+		}
+		draw(cells);
+		
+		if(pacman_x == enemis_cords[i] && pacman_y == enemis_cords[i+1]){
+			printf("GMAEOVER");
+			exit(0);
+		}
 	}
-	draw(cells);
-}
 
-void moveEnemy2(varOfCell cells[HEIGHT][WIDTH]){
-	if(pacman_x<enemy_x2 && cells[enemy_y2][enemy_x2-1].type != WALL && cells[enemy_y2][enemy_x2-1].type != ENEMY){
-		cells[enemy_y2][enemy_x2].type = EMPTY;
-		enemy_x2 -= 1;
-		cells[enemy_y2][enemy_x2].type = ENEMY;
-	}else if(pacman_x > enemy_x2 && cells[enemy_y2][enemy_x2+1].type != WALL && cells[enemy_y2][enemy_x2+1].type != ENEMY){
-		cells[enemy_y2][enemy_x2].type = EMPTY;
-		enemy_x2 += 1;
-		cells[enemy_y2][enemy_x2].type = ENEMY;
-	}else if(pacman_y<enemy_y2 && cells[enemy_y2-1][enemy_x2].type != WALL && cells[enemy_y2-1][enemy_x2].type != ENEMY){
-		cells[enemy_y2][enemy_x2].type = EMPTY;
-		enemy_y2 -= 1;
-		cells[enemy_y2][enemy_x2].type = ENEMY;
-	}else if(pacman_y > enemy_y2 && cells[enemy_y2+1][enemy_x2].type != WALL && cells[enemy_y2+1][enemy_x2].type != ENEMY){
-		cells[enemy_y2][enemy_x2].type = EMPTY;
-		enemy_y2 += 1;
-		cells[enemy_y2][enemy_x2].type = ENEMY;
-	}
-	draw(cells);
 }
 
 
@@ -280,16 +267,6 @@ int response(varOfCell cells[HEIGHT][WIDTH],FILE *ptrToFile){
 		} 
 
 		moveEnemy1(cells);
-		if(pacman_x == enemy_x && pacman_y == enemy_y){
-			printf("GMAEOVER");
-			exit(0);
-		}
-
-		moveEnemy2(cells);
-		if(pacman_x == enemy_x2 && pacman_y == enemy_y2){
-			printf("GMAEOVER");
-			exit(0);
-		}
 
 		ch = getch(); 
 		switch (ch) { 
@@ -345,12 +322,12 @@ int main(){
 
 	//-----------------check player have a prevous game or no--------------------
 	int result;
+	int userChoices;
 	if(isEmpty != -1){
 		printf("file is empty\n");
-		initialize(cells); 
+		initialize(cells,userChoices); 
 		result = response(cells,ptrToFile);
 	}else{
-		int userChoices;
 		do{
 			printf("\n\t-------------------{{PACMAN_GAME}}-------------------\ndo you want to \n1)play previous game  \n2)creat a new game \n");
 			scanf("%d",&userChoices);
@@ -361,8 +338,14 @@ int main(){
 				score = 0;         
 				food = 0;  
 				curr = 0;
-				initialize(cells);
-				result = response(cells,ptrToFile);
+				printf("1)HARD \n2)MID \n3)EASY ");
+				scanf("%d",&userChoices);
+				if(userChoices == 1 ||userChoices == 2 ||userChoices == 3 ){
+					initialize(cells,userChoices);
+					result = response(cells,ptrToFile);
+				}else{
+					printf("please enter a number from your item!!!!!!!!!");
+				}
 			}
 		}while(!(userChoices == 1 || userChoices ==2));
 	}
