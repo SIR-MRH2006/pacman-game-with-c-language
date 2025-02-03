@@ -74,7 +74,7 @@ void initialize(varOfCell cells[HEIGHT][WIDTH],int userChoices){
 		} 
 	}  
 	// Putting present in the Game 
-	count = 3; 
+	count = 6; 
 	while (count != 0) { 
 		int i = (rand() % (HEIGHT + 1)); 
 		int j = (rand() % (WIDTH + 1)); 
@@ -170,40 +170,104 @@ void addToFile(varOfCell cells[HEIGHT][WIDTH],FILE *ptrToFile){
 
 // Function enables to move the Cursor 
 int move(int move_x, int move_y,varOfCell cells[HEIGHT][WIDTH],FILE *ptrToFile){
-	int x = pacman_x + move_x; 
-	int y = pacman_y + move_y; 
-
-	if (cells[y][x].type != WALL){ 
-		if (cells[y][x].type == FOOD){ 
-			if(isdouble == 1 && countOfPresent != 0){
-				score = score+2;
-				food--;
-				curr++;
-				countOfPresent--;
-				if(food == 0 || score == 80){ 
-					res = 2; 
+	int x;
+	int y;
+	int x2;
+	int y2;
+	if(isdouble == 1 && countOfPresent != 0){
+		printf("first ;;;;;;;");
+		countOfPresent--;
+		if(countOfPresent == 0){
+			isdouble = 0;
+		}
+		x2 = pacman_x + 2*move_x; 
+		y2 = pacman_y + 2*move_y; 
+		x = pacman_x + move_x; 
+		y = pacman_y + move_y; 
+		if (cells[y][x].type != WALL){ 
+			if(cells[y2][x2].type != WALL){
+				if (cells[y][x].type == FOOD){ 
+					score++;
+					food--;
+					curr++;
+					if(food == 0 || score == 50){ 
+						res = 2; 
+					}
+				}else if (cells[y2][x2].type == FOOD){ 
+					score = score+1;
+					food--;
+					curr++;
+					if(food == 0 || score == 50){ 
+						res = 2; 
+					}
+				}else if (cells[y][x].type == DEMON || cells[y2][x2].type == DEMON){ 
+					res = 1; 
+				}else if (cells[y][x].type == ENEMY || cells[y2][x2].type == ENEMY){ 
+					res = 1; 
+				}else if (cells[y][x].type == PERESENT || cells[y2][x2].type == PERESENT){ 
+					isdouble = 1; 
+					countOfPresent = 10;
 				}
+
+				cells[pacman_y][pacman_x].type = EMPTY; 
+				cells[y][x].type = EMPTY; 
+				pacman_x = x2; 
+				pacman_y = y2; 
+				cells[pacman_y][pacman_x].type = PACMAN; 
 			}else{
+				printf("second ;;;;;;;");
+				x = pacman_x + move_x; 
+				y = pacman_y + move_y; 
+				if (cells[y][x].type != WALL){ 
+					if (cells[y][x].type == FOOD){ 
+						score++;
+						food--; 
+						curr++; 
+						if (food == 0 || score == 50){
+							res = 2;
+						}
+					}else if (cells[y][x].type == DEMON){ 
+						res = 1; 
+					}else if (cells[y][x].type == ENEMY){ 
+						res = 1; 
+					}else if (cells[y][x].type == PERESENT){ 
+						isdouble = 1; 
+						countOfPresent = 10;
+					}
+
+					cells[pacman_y][pacman_x].type = EMPTY; 
+					pacman_x = x; 
+					pacman_y = y; 
+					cells[pacman_y][pacman_x].type = PACMAN; 
+				}
+			}
+		}
+	}else{
+		printf("second ;;;;;;;");
+		x = pacman_x + move_x; 
+		y = pacman_y + move_y; 
+		if (cells[y][x].type != WALL){ 
+			if (cells[y][x].type == FOOD){ 
 				score++;
 				food--; 
 				curr++; 
-				if (food == 0 || score == 80){ 
+				if (food == 0 || score == 50){ 
 					res = 2;
 				}
+			}else if (cells[y][x].type == DEMON){ 
+				res = 1; 
+			}else if (cells[y][x].type == ENEMY){ 
+				res = 1; 
+			}else if (cells[y][x].type == PERESENT){ 
+				isdouble = 1; 
+				countOfPresent = 10;
 			}
-		}else if (cells[y][x].type == DEMON){ 
-			res = 1; 
-		}else if (cells[y][x].type == PERESENT){ 
-			countOfPresent = 10;
-			isdouble = 1;
-		}else if (cells[y][x].type == ENEMY){ 
-			res = 1; 
-		}
 
-		cells[pacman_y][pacman_x].type = EMPTY; 
-		pacman_x = x; 
-		pacman_y = y; 
-		cells[pacman_y][pacman_x].type = PACMAN; 
+			cells[pacman_y][pacman_x].type = EMPTY; 
+			pacman_x = x; 
+			pacman_y = y; 
+			cells[pacman_y][pacman_x].type = PACMAN; 
+		}
 	} 
 
 	addToFile(cells,ptrToFile);
