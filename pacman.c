@@ -6,8 +6,8 @@
 
 // All the elements to be used 
 // Declared here 
-#define WIDTH 40 
-#define HEIGHT 20 
+#define WIDTH 50
+#define HEIGHT 25
 #define PACMAN 'C' 
 #define WALL '#' 
 #define FOOD '.' 
@@ -25,16 +25,16 @@ int food = 0;  //تعداد غذاهای موجود در بازی
 int curr = 0;    //تعداد غذاهای خورده شده
 int countOfPresent = 0;
 int isdouble = 0;
-int totalFood;
 int enemis_cords[8];
-int auxiliryCount;
+int auxiliaryCount;
 
 typedef struct{
 	char type;
 } varOfCell;
 
 void initialize(varOfCell cells[HEIGHT][WIDTH],int userChoices){
-	// Putting Walls as boundary in the Game 
+	srand(time(NULL));
+	// Putting {{WALL}} as boundary in the Game 
 	for (int i = 0; i < HEIGHT; i++) { 
 		for (int j = 0; j < WIDTH; j++) { 
 			if (i == 0 || j == WIDTH-1 || j == 0 || i == HEIGHT-1){ 
@@ -45,16 +45,27 @@ void initialize(varOfCell cells[HEIGHT][WIDTH],int userChoices){
 			}
 		} 
 	}
-	int val = 5; 
+	// Putting {{WALL}} in the Game 
+	int val = 3; 
+	int row = (rand() % 7)+14; 
 	while (val--) { 
-		int row = (rand() % (HEIGHT + 1)); 
 		for (int j = 7; j < WIDTH - 3; j++) { 
 			if (cells[row][j].type == EMPTY){ 
 				cells[row][j].type = WALL; 
 			} 
 		} 
+		row += 2;
 	}
-	// Putting Walls inside the Game 
+	int val2 = 2; 
+	while (val2--) { 
+		int col = (rand() % (WIDTH-4))+2; 
+		for (int j = 2; j < 9; j++){ 
+			if (cells[j][col].type == EMPTY){ 
+				cells[j][col].type = WALL; 
+			}
+		} 
+	}
+	// Putting {{WALLS}} inside the Game 
 	int count = 40; 
 	while (count != 0) { 
 		int i = (rand() % (HEIGHT + 1)); 
@@ -73,8 +84,8 @@ void initialize(varOfCell cells[HEIGHT][WIDTH],int userChoices){
 			count--; 
 		} 
 	}  
-	// Putting present in the Game 
-	count = 6; 
+	// Putting {{PRESENT}} in the Game 
+	count = 8; 
 	while (count != 0) { 
 		int i = (rand() % (HEIGHT + 1)); 
 		int j = (rand() % (WIDTH + 1)); 
@@ -83,7 +94,7 @@ void initialize(varOfCell cells[HEIGHT][WIDTH],int userChoices){
 			count--; 
 		} 
 	} 
-	// Putting Demons in the Game 
+	// Putting {{DEMONS}} in the Game 
 	count = 10; 
 	while (count != 0) { 
 		int i = (rand() % (HEIGHT + 1)); 
@@ -94,17 +105,18 @@ void initialize(varOfCell cells[HEIGHT][WIDTH],int userChoices){
 			count--;
 		} 
 	} 
-	// Cursor at Center 
+	// Putting {{PACMAN}} in the Game  
 	pacman_x = WIDTH / 2; 
 	pacman_y = HEIGHT / 2; 
 	cells[pacman_y][pacman_x].type = PACMAN; 
-	// Points Placed 
+
+	// Putting {{FOODS}} in the Game 
 	for (int i = 0; i < HEIGHT; i++) { 
 		for (int j = 0; j < WIDTH; j++) { 
 			if (i % 2 == 0 && j % 2 == 0 && cells[i][j].type == EMPTY){ 
 				cells[i][j].type = FOOD; 
 				food++; 
-			} 
+			}
 		} 
 	} 
 
@@ -112,12 +124,12 @@ void initialize(varOfCell cells[HEIGHT][WIDTH],int userChoices){
 		count = 3;
 	}else if(userChoices == 1){
 		count = 4;
-	}
-	else{
+	}else{
 		count = 2;
 	}
 
-	auxiliryCount = count;
+	// Putting {{ENEMY}} in the Game 
+	auxiliaryCount = count;
 	int i;
 	int j;
 	int t = 0;
@@ -133,9 +145,8 @@ void initialize(varOfCell cells[HEIGHT][WIDTH],int userChoices){
 			t = t+2;
 		} 
 	}
+	food = 25;  
 } 
-
-
 
 
 void draw(varOfCell cells[HEIGHT][WIDTH]) { 
@@ -149,8 +160,7 @@ void draw(varOfCell cells[HEIGHT][WIDTH]) {
 		printf("\n"); 
 	} 
 	printf("Score: %d\n", score); 
-	totalFood = food;
-	printf("Total Food count: %d\n", totalFood); 
+	printf("Total Food count: %d\n", food); 
 	printf("Total Food eaten: %d\n", curr); 
 } 
 
@@ -163,7 +173,10 @@ void addToFile(varOfCell cells[HEIGHT][WIDTH],FILE *ptrToFile){
 	fwrite(&score,sizeof(int),1,ptrToFile);
 	fwrite(&food,sizeof(int),1,ptrToFile);
 	fwrite(&curr,sizeof(int),1,ptrToFile);
-	fwrite(cells,sizeof(varOfCell),800,ptrToFile);
+	fwrite(cells,sizeof(varOfCell),1250,ptrToFile);
+	fwrite(enemis_cords,sizeof(int),8,ptrToFile);
+	fwrite(&auxiliaryCount,sizeof(int),1,ptrToFile);
+
 	fclose(ptrToFile);
 	// Close a FILE---------------------------------
 }
@@ -175,7 +188,6 @@ int move(int move_x, int move_y,varOfCell cells[HEIGHT][WIDTH],FILE *ptrToFile){
 	int x2;
 	int y2;
 	if(isdouble == 1 && countOfPresent != 0){
-		printf("first ;;;;;;;");
 		countOfPresent--;
 		if(countOfPresent == 0){
 			isdouble = 0;
@@ -215,7 +227,6 @@ int move(int move_x, int move_y,varOfCell cells[HEIGHT][WIDTH],FILE *ptrToFile){
 				pacman_y = y2; 
 				cells[pacman_y][pacman_x].type = PACMAN; 
 			}else{
-				printf("second ;;;;;;;");
 				x = pacman_x + move_x; 
 				y = pacman_y + move_y; 
 				if (cells[y][x].type != WALL){ 
@@ -234,7 +245,6 @@ int move(int move_x, int move_y,varOfCell cells[HEIGHT][WIDTH],FILE *ptrToFile){
 						isdouble = 1; 
 						countOfPresent = 10;
 					}
-
 					cells[pacman_y][pacman_x].type = EMPTY; 
 					pacman_x = x; 
 					pacman_y = y; 
@@ -243,7 +253,6 @@ int move(int move_x, int move_y,varOfCell cells[HEIGHT][WIDTH],FILE *ptrToFile){
 			}
 		}
 	}else{
-		printf("second ;;;;;;;");
 		x = pacman_x + move_x; 
 		y = pacman_y + move_y; 
 		if (cells[y][x].type != WALL){ 
@@ -271,31 +280,44 @@ int move(int move_x, int move_y,varOfCell cells[HEIGHT][WIDTH],FILE *ptrToFile){
 	} 
 
 	addToFile(cells,ptrToFile);
-
 } 
 
+void moveEleft(varOfCell cells[HEIGHT][WIDTH],int i){
+	cells[enemis_cords[i+1]][enemis_cords[i]].type = EMPTY;
+	enemis_cords[i] -= 1;
+	cells[enemis_cords[i+1]][enemis_cords[i]].type = ENEMY;
+}
+void moveEright(varOfCell cells[HEIGHT][WIDTH],int i){
+		cells[enemis_cords[i+1]][enemis_cords[i]].type = EMPTY;
+		enemis_cords[i] += 1;
+		cells[enemis_cords[i+1]][enemis_cords[i]].type = ENEMY;
+}
+void moveEup(varOfCell cells[HEIGHT][WIDTH],int i){
+		cells[enemis_cords[i+1]][enemis_cords[i]].type = EMPTY;
+		enemis_cords[i+1] -= 1;
+		cells[enemis_cords[i+1]][enemis_cords[i]].type = ENEMY;
+}
+void moveEdown(varOfCell cells[HEIGHT][WIDTH],int i){
+		cells[enemis_cords[i+1]][enemis_cords[i]].type = EMPTY;
+		enemis_cords[i+1] += 1;
+		cells[enemis_cords[i+1]][enemis_cords[i]].type = ENEMY;
+}
+
 void moveEnemy1(varOfCell cells[HEIGHT][WIDTH]){
-	for(int j = 0,i=0;j<auxiliryCount;j++,i=i+2){
-		if(pacman_x<enemis_cords[i] && cells[enemis_cords[i+1]][enemis_cords[i]-1].type != WALL && cells[enemis_cords[i+1]][enemis_cords[i]-1].type != ENEMY){
-			cells[enemis_cords[i+1]][enemis_cords[i]].type = EMPTY;
-			enemis_cords[i] -= 1;
-			cells[enemis_cords[i+1]][enemis_cords[i]].type = ENEMY;
-		}else if(pacman_x > enemis_cords[i] && cells[enemis_cords[i+1]][enemis_cords[i]+1].type != WALL && cells[enemis_cords[i+1]][enemis_cords[i]+1].type != ENEMY){
-			cells[enemis_cords[i+1]][enemis_cords[i]].type = EMPTY;
-			enemis_cords[i] += 1;
-			cells[enemis_cords[i+1]][enemis_cords[i]].type = ENEMY;
-		}else if(pacman_y<enemis_cords[i+1] && cells[enemis_cords[i+1]-1][enemis_cords[i]].type != WALL && cells[enemis_cords[i+1]-1][enemis_cords[i]].type != ENEMY){
-			cells[enemis_cords[i+1]][enemis_cords[i]].type = EMPTY;
-			enemis_cords[i+1] -= 1;
-			cells[enemis_cords[i+1]][enemis_cords[i]].type = ENEMY;
-		}else if(pacman_y > enemis_cords[i+1] && cells[enemis_cords[i+1]+1][enemis_cords[i]].type != WALL  && cells[enemis_cords[i+1]+1][enemis_cords[i]].type != ENEMY){
-			cells[enemis_cords[i+1]][enemis_cords[i]].type = EMPTY;
-			enemis_cords[i+1] += 1;
-			cells[enemis_cords[i+1]][enemis_cords[i]].type = ENEMY;
+	for(int j = 0,i=0;j<auxiliaryCount;j++,i=i+2){
+		if(pacman_x<enemis_cords[i] && (cells[enemis_cords[i+1]][enemis_cords[i]-1].type == EMPTY || cells[enemis_cords[i+1]][enemis_cords[i]-1].type == FOOD)){
+			moveEleft(cells,i);
+		}else if(pacman_x > enemis_cords[i] && (cells[enemis_cords[i+1]][enemis_cords[i]+1].type == EMPTY || cells[enemis_cords[i+1]][enemis_cords[i]+1].type == FOOD)){
+			moveEright(cells,i);
+		}else if(pacman_y<enemis_cords[i+1] && (cells[enemis_cords[i+1]-1][enemis_cords[i]].type == EMPTY || cells[enemis_cords[i+1]-1][enemis_cords[i]].type == FOOD)){
+			moveEup(cells,i);
+		}else if(pacman_y > enemis_cords[i+1] && (cells[enemis_cords[i+1]+1][enemis_cords[i]].type == EMPTY || cells[enemis_cords[i+1]+1][enemis_cords[i]].type == FOOD)){
+			moveEdown(cells,i);
 		}
 		draw(cells);
 		
 		if(pacman_x == enemis_cords[i] && pacman_y == enemis_cords[i+1]){
+			system("cls");
 			printf("GMAEOVER");
 			exit(0);
 		}
@@ -306,15 +328,15 @@ void moveEnemy1(varOfCell cells[HEIGHT][WIDTH]){
 
 int response(varOfCell cells[HEIGHT][WIDTH],FILE *ptrToFile){
 	char ch;
-	food -= 60;  
 	// Instructions to Play 
-	printf(" Use buttons for w(up), a(left) , d(right) and ""s(down)\nAlso, Press q for quit\n"); 
+	system("cls");
+	printf("Use buttons for w(up), a(left) , d(right) and ""s(down)\nAlso, Press q for quit\n"); 
 	printf("Enter Y to continue: \n"); 
 
 	ch = getch(); 
 	if (ch != 'Y' && ch != 'y') { 
 		printf("Exit Game! "); 
-		return 1; 
+		return 1;
 	} 
 
 
@@ -326,7 +348,7 @@ int response(varOfCell cells[HEIGHT][WIDTH],FILE *ptrToFile){
 			return 1; 
 		}else if (res == 2){ 
 			system("cls"); 
-			printf("You Win! \n Your Score: %d\n", score); 
+			printf("You Win! \nYour Score: %d\n", score); 
 			return 1; 
 		} 
 
@@ -358,14 +380,13 @@ int response(varOfCell cells[HEIGHT][WIDTH],FILE *ptrToFile){
 int main(){ 
 	varOfCell cells[HEIGHT][WIDTH];
 
-	int tim = time(NULL);
 	//-------------------------------give info from a {FILE}------------------------
 	//------------------------------------open-FILE
 	FILE *ptrToFile = fopen("pacman.txt","rb");
 	int isEmpty = -1;
 	if(ptrToFile == NULL){
+		fopen("pacman.txt","wb");
 		printf("we have a problem in open the file \n");
-		return 0;
 	}else{
 		fseek(ptrToFile,0,SEEK_END);
 		long size = ftell(ptrToFile);
@@ -378,7 +399,9 @@ int main(){
 			fread(&score,sizeof(int),1,ptrToFile);
 			fread(&food,sizeof(int),1,ptrToFile);
 			fread(&curr,sizeof(int),1,ptrToFile);
-			fread(cells,sizeof(varOfCell),800,ptrToFile);
+			fread(cells,sizeof(varOfCell),1250,ptrToFile);
+			fread(enemis_cords,sizeof(int),8,ptrToFile);
+			fread(&auxiliaryCount,sizeof(int),1,ptrToFile);
 			fclose(ptrToFile);
 		}
 	}
@@ -402,6 +425,7 @@ int main(){
 				score = 0;         
 				food = 0;  
 				curr = 0;
+				system("cls");
 				printf("1)HARD \n2)MID \n3)EASY ");
 				scanf("%d",&userChoices);
 				if(userChoices == 1 ||userChoices == 2 ||userChoices == 3 ){
